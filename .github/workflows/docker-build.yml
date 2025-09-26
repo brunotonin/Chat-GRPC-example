@@ -27,6 +27,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set repository name lowercase
+        id: repo
+        run: echo "repo_lower=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Build and push chat-server
         uses: docker/build-push-action@v5
         with:
@@ -34,8 +38,8 @@ jobs:
           file: ./server/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/chat-server:latest
-            ghcr.io/${{ github.repository }}/chat-server:${{ github.sha }}
+            ghcr.io/${{ steps.repo.outputs.repo_lower }}/chat-server:latest
+            ghcr.io/${{ steps.repo.outputs.repo_lower }}/chat-server:${{ github.sha }}
 
       - name: Build and push chat-client
         uses: docker/build-push-action@v5
@@ -44,5 +48,5 @@ jobs:
           file: ./client/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/chat-client:latest
-            ghcr.io/${{ github.repository }}/chat-client:${{ github.sha }}
+            ghcr.io/${{ steps.repo.outputs.repo_lower }}/chat-client:latest
+            ghcr.io/${{ steps.repo.outputs.repo_lower }}/chat-client:${{ github.sha }}
