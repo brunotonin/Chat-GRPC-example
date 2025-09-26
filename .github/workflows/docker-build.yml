@@ -2,7 +2,7 @@ name: Build and Push Docker images
 
 on:
   push:
-    branches: [ "main" ]   # dispara no push da branch main
+    branches: [ "master" ]   # dispara no push da branch master
   workflow_dispatch:        # permite rodar manualmente
 
 jobs:
