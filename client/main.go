@@ -15,13 +15,14 @@ import (
 	chat "chat-grpc/chat/proto"
 	echo "chat-grpc/echo/proto"
 
+	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 )
 
 func simulateUser(id int, wg *sync.WaitGroup, done <-chan struct{}) {
 	defer wg.Done()
 
-	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	conn, err := grpc.Dial(os.Getenv("GRPC_SERVER_ADDRESS"), grpc.WithInsecure())
 	if err != nil {
 		log.Printf("[User %d] não conectou: %v", id, err)
 		return
@@ -87,6 +88,8 @@ func simulateUser(id int, wg *sync.WaitGroup, done <-chan struct{}) {
 }
 
 func main() {
+	godotenv.Load()
+
 	if len(os.Args) < 2 {
 		fmt.Println("Uso: go run client.go <num_usuarios>")
 		return

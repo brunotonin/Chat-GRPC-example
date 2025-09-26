@@ -11,3 +11,45 @@ services:
     ports:
       - "5672:5672"   # AMQP
       - "15672:15672" # Web Management
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - chat-network
+
+  chat-server:
+    build:
+      context: ./
+      dockerfile: ./server/Dockerfile
+    container_name: chat-server
+    environment:
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ENABLE_PPROF: "false"  # Set to "true" to enable pprof
+    ports:
+      - "50051:50051" # gRPC
+      - "6060:6060"   # pprof (if enabled)
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - chat-network
+
+  chat-client:
+    build:
+      context: ./
+      dockerfile: ./client/Dockerfile
+    container_name: chat-client
+    environment:
+      GRPC_SERVER_ADDRESS: chat-server:50051
+    entrypoint: ["./chat-client", "5"]
+    depends_on:
+      - chat-server
+    networks:
+      - chat-network
+
+networks:
+  chat-network:
+    driver: bridge

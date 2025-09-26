@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"sync"
 	"time"
 
@@ -22,11 +23,11 @@ type ChatServer struct {
 	conn    *amqp.Connection
 	pubCh   *amqp.Channel
 	mu      sync.Mutex
-	clients map[string]chat.ChatService_ChatServer
+	clients sync.Map
 }
 
 func NewChatServer() *ChatServer {
-	conn, err := amqp.Dial(rabbitURL)
+	conn, err := amqp.Dial(os.Getenv("RABBITMQ_URL"))
 	if err != nil {
 		log.Fatalf("Erro ao conectar RabbitMQ: %v", err)
 	}
@@ -52,7 +53,7 @@ func NewChatServer() *ChatServer {
 	return &ChatServer{
 		conn:    conn,
 		pubCh:   pubCh,
-		clients: make(map[string]chat.ChatService_ChatServer),
+		clients: sync.Map{},
 	}
 }
 
@@ -84,9 +85,7 @@ func (s *ChatServer) Chat(stream chat.ChatService_ChatServer) error {
 		return err
 	}
 
-	s.mu.Lock()
-	s.clients[clientID] = stream
-	s.mu.Unlock()
+	s.clients.Store(clientID, stream)
 
 	done := make(chan struct{})
 	go func() {
@@ -154,9 +153,7 @@ func (s *ChatServer) cleanupClient(clientID string, ch *amqp.Channel, queueName 
 	}
 
 	// Remove o cliente do mapa
-	s.mu.Lock()
-	delete(s.clients, clientID)
-	s.mu.Unlock()
+	s.clients.Delete(clientID)
 
 	log.Printf("Cliente %s desconectado e fila removida", clientID)
 }

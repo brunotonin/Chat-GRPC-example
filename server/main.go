@@ -1,29 +1,24 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"net"
 	"net/http"
+	"os"
 
 	chat "chat-grpc/chat/proto"
 	echo "chat-grpc/echo/proto"
 
+	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 
 	_ "net/http/pprof"
 )
 
-var enablePprof bool
-
-func init() {
-	// Flag de terminal: --pprof=true
-	flag.BoolVar(&enablePprof, "pprof", false, "Habilita pprof HTTP server")
-	flag.Parse()
-}
-
 func main() {
-	if enablePprof {
+	godotenv.Load()
+
+	if os.Getenv("ENABLE_PPROF") == "true" {
 		go func() {
 			addr := "localhost:6060"
 			log.Printf("[PPROF] disponível em http://%s/debug/pprof/", addr)
