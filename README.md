@@ -30,12 +30,6 @@ O projeto consiste em:
 ```bash
 # Inicia RabbitMQ, servidor e cliente de exemplo
 docker-compose up
-
-# Para executar apenas infraestrutura
-docker-compose up rabbitmq chat-server
-
-# Para executar cliente com N usuários
-docker-compose run chat-client ./chat-client <numero_usuarios>
 ```
 
 ### Desenvolvimento Local
